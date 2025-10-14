@@ -21,7 +21,6 @@
         const CURRENT_USER = { id: <%= userId %>, name: decodeURIComponent("<%= encUser %>") };
         const CURRENT_GROUP = <%= groupId %>;
     </script>
-    <script src="chat.js"></script>
 </head>
 <body>
 <div class="topbar">
@@ -37,5 +36,6 @@
     </form>
 </div>
 
+    <script src="chat.js"></script>
 </body>
 </html>
