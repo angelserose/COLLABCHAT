@@ -58,3 +58,23 @@ Notes
 -----
 - This project uses simple polling AJAX (future: replace with WebSocket for real-time push).
 - Error handling is minimal; production apps should use prepared connection pools, input validation, CSRF protection, and stronger session management.
+
+Swing Classroom Collaboration (Optional)
+---------------------------------------
+This repo also contains a demo Swing client and a minimal WebSocket broadcast server for classroom collaboration: chat, whiteboard, tic-tac-toe, and quiz.
+
+Run the WebSocket Server
+1. Open a terminal in `collabchat-swing/server` and ensure `java-websocket` is on classpath if needed (or use your IDE).
+2. Compile and run `server/CollabServer.java` (main method). Default port: 8887.
+
+Run the Swing Client
+1. Open a terminal in `collabchat-swing/client`.
+2. Compile and run `client/CollabClient.java` (main method).
+3. Login dialog asks for username and role (teacher/student). No backend auth in this demo.
+4. The app connects to `ws://localhost:8887` and broadcasts messages to all connected clients.
+
+Modules
+- Chat: send/receive messages in real time.
+- Whiteboard: drag to draw; strokes are broadcast to peers.
+- Games: simple tic-tac-toe; moves are broadcast.
+- Quiz: teacher sends MCQ; students answer with a click.

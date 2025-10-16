@@ -14,11 +14,15 @@ public class QuizPanel extends JPanel {
     private String role;
 
     private JPanel questionArea = new JPanel(new BorderLayout());
+    private JProgressBar countdown = new JProgressBar(0, 100);
+    private Timer timer;
 
     public QuizPanel(Consumer<String> sender, String role) {
         this.sender = sender; this.role = role;
         setLayout(new BorderLayout());
         add(questionArea, BorderLayout.CENTER);
+        countdown.setStringPainted(true);
+        add(countdown, BorderLayout.NORTH);
         if ("teacher".equals(role)) add(createTeacherControls(), BorderLayout.SOUTH);
     }
 
@@ -64,9 +68,26 @@ public class QuizPanel extends JPanel {
         }
         questionArea.add(new JLabel(q), BorderLayout.NORTH);
         questionArea.add(opts, BorderLayout.CENTER);
+        startCountdown(20); // 20 seconds
         revalidate(); repaint();
     }
 
     private String extract(String json, String key) { int idx = json.indexOf('"'+key+'"'); int col=json.indexOf(':',idx); int comma=json.indexOf(',',col+1); if (comma<0) comma=json.indexOf('}',col+1); return json.substring(col+1,comma).trim(); }
     private String extractStr(String json, String key) { int idx = json.indexOf('"'+key+'"'); int col=json.indexOf(':',idx); int s=json.indexOf('"',col+1); int e=json.indexOf('"',s+1); return json.substring(s+1,e); }
+
+    private void startCountdown(int seconds) {
+        if (timer != null) timer.stop();
+        countdown.setValue(100);
+        final long end = System.currentTimeMillis() + seconds*1000L;
+        timer = new Timer(100, new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                long remain = Math.max(0, end - System.currentTimeMillis());
+                int pct = (int)(remain * 100 / (seconds*1000L));
+                countdown.setValue(pct);
+                countdown.setString(pct + "% time left");
+                if (remain == 0) timer.stop();
+            }
+        });
+        timer.start();
+    }
 }

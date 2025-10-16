@@ -11,6 +11,7 @@ import java.util.function.Consumer;
 public class ChatPanel extends JPanel {
     private JTextArea taMessages;
     private JTextField tfInput;
+    private JLabel typing;
     private Consumer<String> sender;
 
     public ChatPanel(Consumer<String> sender) {
@@ -23,6 +24,8 @@ public class ChatPanel extends JPanel {
         JButton bSend = new JButton("Send");
         bSend.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { send(); } });
         bottom.add(tfInput, BorderLayout.CENTER); bottom.add(bSend, BorderLayout.EAST);
+        typing = new JLabel(" ");
+        bottom.add(typing, BorderLayout.NORTH);
         add(bottom, BorderLayout.SOUTH);
     }
 
@@ -37,7 +40,8 @@ public class ChatPanel extends JPanel {
         // crude parsing
         String user = extract(json, "user");
         String msg = extract(json, "msg");
-        taMessages.append(user + ": " + msg + "\n");
+        taMessages.append("→ " + user + ": " + msg + "\n");
+        typing.setText(" ");
     }
 
     private String extract(String json, String key) {

@@ -15,7 +15,10 @@ document.addEventListener('DOMContentLoaded', function(){
     function render(msg){
         const d = document.createElement('div');
         d.className='message';
-        d.textContent = `[${msg.ts}] ${msg.text}`;
+        const ts = msg.ts || '';
+        const user = msg.username || 'anon';
+        const text = msg.text || '';
+        d.textContent = `[${ts}] ${user}: ${text}`;
         messagesEl.appendChild(d);
     }
 
@@ -30,4 +33,11 @@ document.addEventListener('DOMContentLoaded', function(){
     // Polling for now; replace with WebSocket later
     load();
     setInterval(load, 3000);
+
+    // Placeholder for future WebSocket integration
+    // function initWebSocket(){
+    //   const ws = new WebSocket(`ws://${location.host}/collabchat/ws?groupId=${CURRENT_GROUP}`);
+    //   ws.onmessage = (ev)=>{ try { const msg = JSON.parse(ev.data); render(msg); } catch(e){} };
+    //   form.addEventListener('submit', (e)=>{ e.preventDefault(); const text=input.value.trim(); if(!text) return; ws.send(JSON.stringify({groupId:CURRENT_GROUP,text})); input.value=''; });
+    // }
 });

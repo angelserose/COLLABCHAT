@@ -18,7 +18,8 @@
     <link rel="stylesheet" href="styles.css" />
     <script>
         // Safely emit server-side values into JS using URL-encoding to avoid injection
-        const CURRENT_USER = { id: <%= userId %>, name: decodeURIComponent("<%= encUser %>") };
+        const CURRENT_USER = { id: <%= userId %>, name: decodeURIComponentedge
+            "<%= encUser %>") };
         const CURRENT_GROUP = <%= groupId %>;
     </script>
 </head>

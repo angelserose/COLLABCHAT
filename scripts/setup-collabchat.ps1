@@ -1,7 +1,7 @@
 <#
 Setup script for CollabChat (PowerShell)
 This script will:
- - create an app DB user and grant privileges
+ - create an app DB user and grant privileges& $mysqlExe -u $rootUser -p$plainRootPass -e $createUserCmd
  - optionally import the schema
  - copy required jars into WebContent/WEB-INF/lib
  - optionally deploy the exploded webapp into a local Tomcat
@@ -33,7 +33,7 @@ $doImport = Read-Host "Import schema from db/schema.sql? (Y/n)"; if ([string]::I
 Write-Host "Creating user and granting privileges..." -ForegroundColor Yellow
 $createUserCmd = "CREATE USER IF NOT EXISTS '$appUser'@'localhost' IDENTIFIED BY '$appPass';"
 $grantCmd = "GRANT SELECT, INSERT, UPDATE, DELETE ON collabchat.* TO '$appUser'@'localhost'; FLUSH PRIVILEGES;"
-& $mysqlExe -u $rootUser -p$plainRootPass -e $createUserCmd
+
 & $mysqlExe -u $rootUser -p$plainRootPass -e $grantCmd
 
 # Also create/grant for 127.0.0.1 to avoid client differences

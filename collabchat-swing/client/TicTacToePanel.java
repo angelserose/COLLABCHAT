@@ -22,9 +22,11 @@ public class TicTacToePanel extends JPanel {
             b.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { move(rr,cc); } });
             btns[r][c]=b; add(b);
         }
+        JButton reset = new JButton("Reset"); reset.addActionListener(e -> doReset());
+        add(reset);
     }
 
-    private void move(int r,int c) {
+    public void move(int r,int c) {
         if (board[r][c]!=0) return;
         board[r][c] = 'X'; btns[r][c].setText("X");
         String json = String.format("{\"type\":\"game\",\"game\":\"tictac\",\"x\":%d,\"y\":%d,\"player\":\"local\"}", r, c);
@@ -38,6 +40,10 @@ public class TicTacToePanel extends JPanel {
         String player = extractStr(json, "player");
         board[x][y] = 'O'; // show remote moves as O
         btns[x][y].setText("O");
+    }
+
+    private void doReset() {
+        for (int r=0;r<3;r++) for (int c=0;c<3;c++) { board[r][c]=0; btns[r][c].setText(""); }
     }
 
     private String extract(String json, String key) { int idx = json.indexOf('"'+key+'"'); int col=json.indexOf(':',idx); int comma=json.indexOf(',',col+1); if (comma<0) comma=json.indexOf('}',col+1); return json.substring(col+1,comma).trim(); }
