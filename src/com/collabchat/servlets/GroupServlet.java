@@ -20,16 +20,33 @@ public class GroupServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        // create group
-        String name = req.getParameter("name");
+        // create group or join via POST (action=join)
+        String action = req.getParameter("action");
         Integer userId = (Integer) req.getSession().getAttribute("userId");
-        if (name == null || userId == null) { resp.setStatus(400); return; }
+        if (userId == null) { resp.setStatus(401); return; }
+
+        if ("join".equals(action)) {
+            // join existing group
+            String gid = req.getParameter("groupId");
+            if (gid == null) { resp.setStatus(400); return; }
+            try {
+                int groupId = Integer.parseInt(gid);
+                boolean ok = groupDAO.addMember(groupId, userId);
+                resp.setStatus(ok?200:400);
+            } catch (SQLException | NumberFormatException e) { resp.setStatus(500); }
+            return;
+        }
+
+        // default: create group
+        String name = req.getParameter("name");
+        if (name == null) { resp.setStatus(400); return; }
         try {
             int groupId = groupDAO.createGroup(name, userId);
             groupDAO.addMember(groupId, userId);
             resp.setContentType("application/json");
             PrintWriter out = resp.getWriter();
             out.print("{\"groupId\":"+groupId+"}");
+            resp.setStatus(201);
         } catch (SQLException e) { resp.setStatus(500); }
     }
 
@@ -48,18 +65,38 @@ public class GroupServlet extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         Integer userId = (Integer) req.getSession().getAttribute("userId");
         if (userId == null) { resp.setStatus(401); return; }
+        
+        String groupIdParam = req.getParameter("groupId");
+        
         try {
-            List<Group> groups = groupDAO.findGroupsForUser(userId);
             resp.setContentType("application/json");
             PrintWriter out = resp.getWriter();
-            out.print("[");
-            boolean first=true;
-            for (Group g: groups) {
-                if (!first) out.print(",");
-                out.print("{\"groupId\":"+g.getGroupId()+",\"name\":\""+g.getName()+"\"}");
-                first=false;
+            
+            if (groupIdParam != null) {
+                // Return specific group information
+                int groupId = Integer.parseInt(groupIdParam);
+                Group group = groupDAO.findById(groupId);
+                if (group != null) {
+                    out.print("{\"groupId\":"+group.getGroupId()+",\"name\":\""+group.getName()+"\"}");
+                } else {
+                    resp.setStatus(404);
+                }
+            } else {
+                // Return all groups for user
+                List<Group> groups = groupDAO.findGroupsForUser(userId);
+                out.print("[");
+                boolean first=true;
+                for (Group g: groups) {
+                    if (!first) out.print(",");
+                    out.print("{\"groupId\":"+g.getGroupId()+",\"name\":\""+g.getName()+"\"}");
+                    first=false;
+                }
+                out.print("]");
             }
-            out.print("]");
-        } catch (SQLException e) { resp.setStatus(500); }
+        } catch (SQLException e) { 
+            resp.setStatus(500); 
+        } catch (NumberFormatException e) {
+            resp.setStatus(400);
+        }
     }
 }

@@ -10,7 +10,8 @@ document.addEventListener('DOMContentLoaded', function(){
     document.getElementById('joinGroupForm')?.addEventListener('submit', function(e){
         e.preventDefault();
         const groupId = document.getElementById('joinGroupId').value;
-        fetch('group?groupId='+groupId, { method: 'PUT', headers: {'Content-Type':'application/x-www-form-urlencoded'}, body: 'groupId='+encodeURIComponent(groupId) })
+        // Use POST with explicit action=join so the servlet can read parameters reliably
+        fetch('group', { method: 'POST', headers: {'Content-Type':'application/x-www-form-urlencoded'}, body: 'groupId='+encodeURIComponent(groupId)+'&action=join' })
             .then(r=>{ if (r.ok) window.location.href='chat.jsp?groupId='+groupId; else alert('Could not join'); })
             .catch(()=>alert('Could not join'));
     });

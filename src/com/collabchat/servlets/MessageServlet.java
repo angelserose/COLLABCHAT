@@ -24,21 +24,32 @@ public class MessageServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         Integer userId = (Integer) req.getSession().getAttribute("userId");
-        int groupId = Integer.parseInt(req.getParameter("groupId"));
+        String gidStr = req.getParameter("groupId");
         String message = req.getParameter("message");
-        if (userId == null || message == null) { resp.setStatus(400); return; }
+        if (userId == null) { resp.setStatus(401); resp.setContentType("application/json"); resp.getWriter().print("{\"error\":\"unauthenticated\"}"); return; }
+        if (gidStr == null || message == null) { resp.setStatus(400); resp.setContentType("application/json"); resp.getWriter().print("{\"error\":\"missing_parameters\"}"); return; }
         try {
+            int groupId = Integer.parseInt(gidStr);
             int msgId = messageDAO.saveMessage(groupId, userId, message);
-            if (msgId > 0) { resp.setStatus(201); return; }
-        } catch (SQLException e) { e.printStackTrace(); }
+            if (msgId > 0) {
+                resp.setStatus(201);
+                resp.setContentType("application/json");
+                resp.getWriter().print("{\"messageId\":"+msgId+",\"groupId\":"+groupId+"}");
+                return;
+            }
+        } catch (SQLException | NumberFormatException e) { e.printStackTrace(); }
         resp.setStatus(500);
+        resp.setContentType("application/json");
+        resp.getWriter().print("{\"error\":\"server_error\"}");
     }
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        int groupId = Integer.parseInt(req.getParameter("groupId"));
+        String gidStr = req.getParameter("groupId");
+        if (gidStr == null || gidStr.trim().isEmpty()) { resp.setStatus(400); resp.setContentType("application/json"); resp.getWriter().print("{\"error\":\"missing_groupId\"}"); return; }
         int limit = 200;
         try {
+            int groupId = Integer.parseInt(gidStr);
             List<Message> msgs = messageDAO.fetchRecentForGroup(groupId, limit);
             resp.setContentType("application/json");
             PrintWriter out = resp.getWriter();
@@ -48,10 +59,10 @@ public class MessageServlet extends HttpServlet {
             for (Message m: msgs) {
                 if (!first) out.print(",");
                 String ts = m.getTimestamp()!=null?df.format(m.getTimestamp()):"";
-                out.print("{\"id\":"+m.getMessageId()+",\"userId\":"+m.getUserId()+",\"username\":"+StringUtil.escapeJson(m.getUsername())+",\"text\":"+StringUtil.escapeJson(m.getMessage())+",\"ts\":\""+ts+"\"}");
+                out.print("{\"id\":"+m.getMessageId()+",\"userId\":"+m.getUserId()+",\"username\":"+StringUtil.escapeJson(m.getUsername())+",\"text\":"+StringUtil.escapeJson(m.getMessage())+",\"ts\":\""+ts+"\",\"timestamp\":"+(m.getTimestamp()!=null?m.getTimestamp().getTime():System.currentTimeMillis())+"}");
                 first=false;
             }
             out.print("]");
-        } catch (SQLException e) { e.printStackTrace(); resp.setStatus(500); }
+        } catch (SQLException | NumberFormatException e) { e.printStackTrace(); resp.setStatus(500); resp.setContentType("application/json"); resp.getWriter().print("{\"error\":\"server_error\"}"); }
     }
 }
